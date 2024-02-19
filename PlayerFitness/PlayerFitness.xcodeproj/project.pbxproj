@@ -12,6 +12,7 @@
 		04684DDA2B708BCF0016CA32 /* AssetConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04684DD92B708BCF0016CA32 /* AssetConstant.swift */; };
 		04684DDC2B709A200016CA32 /* Extension+UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04684DDB2B709A200016CA32 /* Extension+UIKit.swift */; };
 		04684DDE2B709E3D0016CA32 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04684DDD2B709E3D0016CA32 /* PlayerViewModel.swift */; };
+		04711F022B83349100E731B3 /* TestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04711F012B83349100E731B3 /* TestController.swift */; };
 		0499D65B2B6CA23E00EEE365 /* PlayerFitnessApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0499D65A2B6CA23E00EEE365 /* PlayerFitnessApp.swift */; };
 		0499D65D2B6CA23E00EEE365 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0499D65C2B6CA23E00EEE365 /* ContentView.swift */; };
 		0499D65F2B6CA24000EEE365 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0499D65E2B6CA24000EEE365 /* Assets.xcassets */; };
@@ -26,6 +27,7 @@
 		04684DD92B708BCF0016CA32 /* AssetConstant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetConstant.swift; sourceTree = "<group>"; };
 		04684DDB2B709A200016CA32 /* Extension+UIKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+UIKit.swift"; sourceTree = "<group>"; };
 		04684DDD2B709E3D0016CA32 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
+		04711F012B83349100E731B3 /* TestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
 		0499D6572B6CA23E00EEE365 /* PlayerFitness.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayerFitness.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0499D65A2B6CA23E00EEE365 /* PlayerFitnessApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerFitnessApp.swift; sourceTree = "<group>"; };
 		0499D65C2B6CA23E00EEE365 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -90,6 +92,7 @@
 				0499D66A2B6CA2A100EEE365 /* PlayerCoordinator.swift */,
 				04684DD62B7081C40016CA32 /* Extension+SwiftUI.swift */,
 				04684DDB2B709A200016CA32 /* Extension+UIKit.swift */,
+				04711F012B83349100E731B3 /* TestController.swift */,
 				0499D65E2B6CA24000EEE365 /* Assets.xcassets */,
 				0499D6602B6CA24000EEE365 /* Preview Content */,
 			);
@@ -179,6 +182,7 @@
 				04684DDE2B709E3D0016CA32 /* PlayerViewModel.swift in Sources */,
 				04684DD72B7081C40016CA32 /* Extension+SwiftUI.swift in Sources */,
 				0499D65D2B6CA23E00EEE365 /* ContentView.swift in Sources */,
+				04711F022B83349100E731B3 /* TestController.swift in Sources */,
 				0499D65B2B6CA23E00EEE365 /* PlayerFitnessApp.swift in Sources */,
 				0499D6692B6CA26D00EEE365 /* PlayerController.swift in Sources */,
 				04684DDA2B708BCF0016CA32 /* AssetConstant.swift in Sources */,
@@ -322,7 +326,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -351,7 +355,7 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

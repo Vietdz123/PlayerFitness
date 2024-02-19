@@ -7,6 +7,15 @@
 
 import SwiftUI
 
+class AppDelegate: NSObject, UIApplicationDelegate {
+        
+    static var orientationLock = UIInterfaceOrientationMask.all //By default you want all your views to rotate freely
+
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        return AppDelegate.orientationLock
+    }
+}
+
 struct ContentView: View {
     
 //    var urls: [String] {
@@ -20,9 +29,9 @@ struct ContentView: View {
     var urls: [String] {
         
         return ["https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
-                "https://cdn-fitness.eztechglobal.com/test_video/1_2.mp4",
-                "https://cdn-fitness.eztechglobal.com/test_video/1_3.mp4",
-                "https://cdn-fitness.eztechglobal.com/test_video/1_4.mp4"]
+                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
+                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
+                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4"]
         
     }
     
@@ -31,10 +40,22 @@ struct ContentView: View {
             PlayerCoordinator(urls: urls)
                 .frame(width: widthDevice, height: heightDevice)
                 .background(.red)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .ignoresSafeArea()
+                .onAppear {
+                    UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation") // Forcing the rotation to portrait
+                    AppDelegate.orientationLock = .portrait // And making sure it stays that way
+                }
+                .onDisappear {
+                    AppDelegate.orientationLock = .all // Unlocking the rotation when leaving the view
+                }
+            
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .ignoresSafeArea()
+       
+       
     
-    }
+    
+
 }
 

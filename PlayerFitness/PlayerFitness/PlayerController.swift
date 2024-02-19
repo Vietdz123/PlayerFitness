@@ -13,7 +13,7 @@ class PlayerController: UIViewController {
     
     // MARK: - Properties
     let viewModel: PlayerViewModel
-    let player = AVPlayer()
+    var player = AVPlayer()
     private var isPlaying: Bool = true
     private var isFullScreen: Bool = false
     private lazy var playerLayer = AVPlayerLayer(player: player)
@@ -21,6 +21,20 @@ class PlayerController: UIViewController {
     override var prefersStatusBarHidden: Bool {
         return true
     }
+    
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .portrait
+    }
+    
+    private lazy var playerViewController: LandscapeAVPlayerController = {
+        let vc = LandscapeAVPlayerController()
+        vc.showsPlaybackControls = false
+        vc.player = self.player
+        vc.modalPresentationStyle = .overFullScreen
+        vc.videoGravity = .resizeAspectFill
+        vc.view.backgroundColor = .blue
+        return vc
+    }()
     
     private lazy var shadowView: UIView = {
         var view = UIView()
@@ -269,6 +283,7 @@ class PlayerController: UIViewController {
         super.viewDidLoad()
         
         configureUI()
+        addNotification()
     }
     
     
@@ -294,14 +309,28 @@ class PlayerController: UIViewController {
 
      }
     
+    private func addNotification() {
+        NotificationCenter.default.addObserver(self, selector: #selector(gotoMirrorScreen), name: UIScene.willConnectNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(exitMirrorScreen), name: UIScene.didDisconnectNotification, object: nil)
+    }
+    
+    @objc func gotoMirrorScreen() {
+        AppDelegate.orientationLock = .all
+        UIApplication.shared.windows.first?.rootViewController?.present(playerViewController, animated: false)
+    }
+    
+    @objc func exitMirrorScreen() {
+        playerViewController.dismiss(animated: false)
+        AppDelegate.orientationLock = .portrait
+    }
+    
     private func configureUI() {
         updatePlayer()
-//        playerLayer.frame = .init(x: 0, y: 0, width: view.frame.width, height: view.frame.width / 375 * 450)
-        playerLayer.frame = .init(x: 0, y: 0, width: heightDevice, height: widthDevice)
+        playerLayer.frame = .init(x: 0, y: 0, width: view.frame.width, height: view.frame.width / 375 * 450)
         playerLayer.videoGravity = .resizeAspectFill
-//        player.isMuted = true
+        player.isMuted = true
         view.layer.addSublayer(playerLayer)
-//        view.layer.masksToBounds = true
+        view.layer.masksToBounds = true
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleViewMainTapped)))
 
         view.addSubview(shadowView)
@@ -333,17 +362,10 @@ class PlayerController: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidFinishPlay),
                                                name: .AVPlayerItemDidPlayToEndTime, object: nil)
         
-        
-//        let playervc = AVPlayerViewController()
         player.allowsExternalPlayback = true
         player.externalPlaybackVideoGravity = .resizeAspectFill
+
         
-//        if let window = UIApplication.shared.windows.first {
-//            window.frame = .init(x: 0, y: 0, width: heightDevice, height: widthDevice)
-//        }
-//        player.usesExternalPlaybackWhileExternalScreenIsActive = true
-        
-//        playervc.entersFullScreenWhenPlaybackBegins = true
     }
     
     func updatePlayer() {
@@ -406,3 +428,15 @@ class PlayerController: UIViewController {
          
 }
 
+class LandscapeAVPlayerController: AVPlayerViewController {
+
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .landscapeRight
+    }
+    
+    override var shouldAutorotate: Bool {
+        return true
+    }
+    
+    
+}
