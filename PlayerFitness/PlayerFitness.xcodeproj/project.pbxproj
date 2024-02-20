@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		044B16242B84850300B07BFD /* ProgressPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B16232B84850300B07BFD /* ProgressPlayerView.swift */; };
+		044B16262B84A95D00B07BFD /* GetReadyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B16252B84A95D00B07BFD /* GetReadyView.swift */; };
 		046050A02B71D34D00BBAB3C /* AVController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0460509F2B71D34D00BBAB3C /* AVController.swift */; };
 		04684DD72B7081C40016CA32 /* Extension+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04684DD62B7081C40016CA32 /* Extension+SwiftUI.swift */; };
 		04684DDA2B708BCF0016CA32 /* AssetConstant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04684DD92B708BCF0016CA32 /* AssetConstant.swift */; };
@@ -22,6 +24,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		044B16232B84850300B07BFD /* ProgressPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPlayerView.swift; sourceTree = "<group>"; };
+		044B16252B84A95D00B07BFD /* GetReadyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetReadyView.swift; sourceTree = "<group>"; };
 		0460509F2B71D34D00BBAB3C /* AVController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVController.swift; sourceTree = "<group>"; };
 		04684DD62B7081C40016CA32 /* Extension+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+SwiftUI.swift"; sourceTree = "<group>"; };
 		04684DD92B708BCF0016CA32 /* AssetConstant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetConstant.swift; sourceTree = "<group>"; };
@@ -87,6 +91,8 @@
 				0499D65A2B6CA23E00EEE365 /* PlayerFitnessApp.swift */,
 				0499D65C2B6CA23E00EEE365 /* ContentView.swift */,
 				0499D6682B6CA26D00EEE365 /* PlayerController.swift */,
+				044B16232B84850300B07BFD /* ProgressPlayerView.swift */,
+				044B16252B84A95D00B07BFD /* GetReadyView.swift */,
 				0460509F2B71D34D00BBAB3C /* AVController.swift */,
 				04684DDD2B709E3D0016CA32 /* PlayerViewModel.swift */,
 				0499D66A2B6CA2A100EEE365 /* PlayerCoordinator.swift */,
@@ -177,6 +183,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				044B16242B84850300B07BFD /* ProgressPlayerView.swift in Sources */,
+				044B16262B84A95D00B07BFD /* GetReadyView.swift in Sources */,
 				04684DDC2B709A200016CA32 /* Extension+UIKit.swift in Sources */,
 				046050A02B71D34D00BBAB3C /* AVController.swift in Sources */,
 				04684DDE2B709E3D0016CA32 /* PlayerViewModel.swift in Sources */,
@@ -328,6 +336,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -357,6 +366,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

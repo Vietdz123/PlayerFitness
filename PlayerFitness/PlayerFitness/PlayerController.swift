@@ -9,11 +9,41 @@ import SwiftUI
 import AVFoundation
 import AVKit
 
+
+extension UIViewController {
+    
+    func setOrientationController(rotateOrientation: UIInterfaceOrientation) {
+        if #available(iOS 16.0, *) {
+                guard
+                    let rootViewController = UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.rootViewController,
+                    let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+                else { return }
+            
+            if windowScene.interfaceOrientation.isPortrait {
+                AppDelegate.orientationLock = .landscape
+            } else {
+                AppDelegate.orientationLock = .portrait
+            }
+                rootViewController.setNeedsUpdateOfSupportedInterfaceOrientations()
+                windowScene.requestGeometryUpdate(.iOS(
+                    interfaceOrientations: windowScene.interfaceOrientation.isLandscape
+                        ? .portrait
+                        : .landscapeRight
+                ))
+            
+            } else {
+                UIDevice.current.setValue(rotateOrientation.rawValue, forKey: "orientation")
+            }
+    }
+    
+}
+
 class PlayerController: UIViewController {
     
     // MARK: - Properties
     let viewModel: PlayerViewModel
     var player = AVPlayer()
+    private var timeObserverToken: Any?
     private var isPlaying: Bool = true
     private var isFullScreen: Bool = false
     private lazy var playerLayer = AVPlayerLayer(player: player)
@@ -22,19 +52,14 @@ class PlayerController: UIViewController {
         return true
     }
     
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        return .portrait
-    }
+    // MARK: - SwiftUI View
+    private var bottomProgressView: ProgressPlayerView = ProgressPlayerView()
+//    private var topFullScreenProgressView: TotalProgressView = TotalProgressView()
+    private var getReadyView: GetReadyView = GetReadyView()
     
-    private lazy var playerViewController: LandscapeAVPlayerController = {
-        let vc = LandscapeAVPlayerController()
-        vc.showsPlaybackControls = false
-        vc.player = self.player
-        vc.modalPresentationStyle = .overFullScreen
-        vc.videoGravity = .resizeAspectFill
-        vc.view.backgroundColor = .blue
-        return vc
-    }()
+    private var bottomProgressSwiftUIView: UIHostingController<ProgressPlayerView>?
+    private var topFullScreenSwiftUIView: UIHostingController<TotalProgressView>?
+    private var getReadySwiftUIView: UIHostingController<GetReadyView>?
     
     private lazy var shadowView: UIView = {
         var view = UIView()
@@ -49,7 +74,6 @@ class PlayerController: UIViewController {
     private lazy var playVideoBtn: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.playVideo.rawValue), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(handlePlayButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -74,7 +98,6 @@ class PlayerController: UIViewController {
                                                        rewindNextVideoBtn])
         stackView.axis = .horizontal
         stackView.distribution = .equalSpacing
-        stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.spacing = 32
         stackView.isHidden = true
         return stackView
@@ -84,9 +107,7 @@ class PlayerController: UIViewController {
     private lazy var playFullScreenVideoBtn: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.playVideo.rawValue), for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(handlePlayButtonTapped), for: .touchUpInside)
-        button.transform = .init(rotationAngle: .pi / 2)
         return button
     }()
     
@@ -94,7 +115,6 @@ class PlayerController: UIViewController {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.nextVideo.rawValue), for: .normal)
         button.addTarget(self, action: #selector(handleNextButtonTapped), for: .touchUpInside)
-        button.transform = .init(rotationAngle: .pi / 2)
         return button
     }()
     
@@ -102,7 +122,6 @@ class PlayerController: UIViewController {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.backVideo.rawValue), for: .normal)
         button.addTarget(self, action: #selector(handleBackButtonTapped), for: .touchUpInside)
-        button.transform = .init(rotationAngle: .pi / 2)
         button.alpha = 0.4
         button.isUserInteractionEnabled = false
         return button
@@ -114,7 +133,6 @@ class PlayerController: UIViewController {
                                                        nextVideoBtn])
         stackView.axis = .vertical
         stackView.distribution = .equalSpacing
-        stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.spacing = 32
         stackView.isHidden = true
         return stackView
@@ -126,23 +144,27 @@ class PlayerController: UIViewController {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.fullscreen.rawValue), for: .normal)
         button.addTarget(self, action: #selector(handleFullScreenButtonTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        
         return button
     }()
     
     private lazy var tvcastButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.screencastPlayer.rawValue), for: .normal)
-        button.addTarget(self, action: #selector(rewindBackTappedTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(handleFullScreenButtonTapped), for: .touchUpInside)
+        
         return button
     }()
+    
+    override var shouldAutorotate: Bool {
+           return true
+       }
     
     private lazy var mutedSoundButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.soundPlayer.rawValue), for: .normal)
         button.addTarget(self, action: #selector(handleMutedButtonTapped), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
+        
         return button
     }()
     
@@ -167,44 +189,15 @@ class PlayerController: UIViewController {
     }
     
     @objc func handleFullScreenButtonTapped() {
-        UIView.animate(withDuration: 0.5) {
-            if self.isFullScreen {
-                self.playerLayer.setAffineTransform(.identity)
-                self.playerLayer.frame = .init(x: 0, y: 0, width: self.widthDevice, height: self.widthDevice / 375 * 450)
 
-            } else {
-                self.shadowView.isHidden = true
-                self.activityPlayStackView.isHidden = true
-                self.playerLayer.setAffineTransform(CGAffineTransform(rotationAngle: .pi / 2))
-                self.playerLayer.frame = .init(origin: .zero, size: .init(width: self.widthDevice, height: self.heightDevice))
-            }
-        }
-        
         if self.isFullScreen {
-            self.shadowView.frame = .init(x: 0, y: 0, width: self.widthDevice, height: self.widthDevice / 375 * 450)
-            self.activityPlayStackView.isHidden = true
-            self.actionStackView.isHidden = true
-            self.shadowView.isHidden = true
-            self.activityFullScreenPlayStackView.isHidden = true
-            self.fullscreenButton.setImage(UIImage(named: AssetConstant.fullscreen.rawValue), for: .normal)
-            
-            self.actionStackView.frame = .init(x: self.widthDevice / 2 - 70, y: self.widthDevice / 375 * 225 + 30 + 48 + 12, width: 140, height: 44)
-            self.actionStackView.layer.setAffineTransform(.init(rotationAngle: .pi / 2 * 3))
-            self.mutedSoundButton.layer.setAffineTransform(.init(rotationAngle: .pi / 2))
-            self.fullscreenButton.layer.setAffineTransform(.init(rotationAngle: .pi / 2))
-            self.tvcastButton.layer.setAffineTransform(.init(rotationAngle: .pi / 2))
+            self.setOrientationController(rotateOrientation: .portrait)
+
             
         } else {
-            self.actionStackView.isHidden = true
-            self.shadowView.frame = .init(origin: .zero, size: .init(width: self.widthDevice, height: self.heightDevice))
-            self.activityPlayStackView.isHidden = true
-            self.fullscreenButton.setImage(UIImage(named: AssetConstant.smallVideo.rawValue), for: .normal)
-          
-            self.actionStackView.frame = .init(x: self.widthDevice - 140 - 36, y: self.heightDevice - self.insetBottom - 48, width: 140, height: 44)
-            self.actionStackView.layer.setAffineTransform(.init(rotationAngle: .pi / 2))
-            self.mutedSoundButton.layer.setAffineTransform(.init(rotationAngle: .pi * 2))
-            self.fullscreenButton.layer.setAffineTransform(.init(rotationAngle: .pi * 2))
-            self.tvcastButton.layer.setAffineTransform(.init(rotationAngle: .pi * 2))
+            self.setOrientationController(rotateOrientation: .landscapeLeft)
+
+
         }
         isFullScreen.toggle()
     }
@@ -218,8 +211,6 @@ class PlayerController: UIViewController {
             player.play()
             self.playVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
             self.playFullScreenVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
-            self.fullscreenButton.transform = .init(rotationAngle: .pi / -2)
-            self.mutedSoundButton.transform = .init(rotationAngle: .pi / 2)
         }
         
         isPlaying.toggle()
@@ -270,7 +261,8 @@ class PlayerController: UIViewController {
     
     // MARK: - View Lifecycle
     init(urls: [String]) {
-        self.viewModel = PlayerViewModel(urls: urls)
+        PlayerViewModel.shared.updateViewModel(urls: urls)
+        self.viewModel = PlayerViewModel.shared
         
         super.init(nibName: nil, bundle: nil)
     }
@@ -279,11 +271,59 @@ class PlayerController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        print("DEBUG: \(size) siuuu")
+        let width = size.width
+        let height = size.height
+        
+        
+        //Is Landscape
+        if width > height {
+            self.playerLayer.frame = .init(origin: .zero, size: .init(width: widthDevice, height: heightDevice))
+            self.shadowView.frame = .init(origin: .zero, size: size)
+            self.actionStackView.isHidden = true
+            self.shadowView.isHidden = true
+            self.activityPlayStackView.isHidden = true
+            self.activityFullScreenPlayStackView.isHidden = true
+            self.fullscreenButton.setImage(UIImage(named: AssetConstant.smallVideo.rawValue), for: .normal)
+          
+            self.actionStackView.axis = .vertical
+            self.actionStackView.frame = .init(x: width - 36 - 44, y: 36, width: 44, height: 144)
+            self.actionStackView.layoutMargins = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: -20)
+            self.activityFullScreenPlayStackView.frame = .init(x: width / 2 - 204 / 2, y: height / 2 - 30 / 2, width: 204, height: 60)
+            self.activityFullScreenPlayStackView.axis = .horizontal
+            
+//            let swiftuiView = topFullScreenSwiftUIView?.view
+//            swiftuiView?.isHidden = false
+//            swiftuiView?.frame = .init(x: 32, y: 20, width: width - 64, height: 10)
+            
+        } else {
+
+            self.playerLayer.frame = .init(x: 0, y: 0, width: width, height: width / 375 * 450)
+            self.shadowView.frame = .init(x: 0, y: 0, width: width, height: width / 375 * 450)
+            self.activityPlayStackView.isHidden = true
+            self.actionStackView.isHidden = true
+            self.shadowView.isHidden = true
+            self.activityFullScreenPlayStackView.isHidden = true
+            self.fullscreenButton.setImage(UIImage(named: AssetConstant.fullscreen.rawValue), for: .normal)
+            
+            self.actionStackView.frame = .init(x: width / 2 - 70, y: width / 375 * 225 + 30 + 48 + 12, width: 140, height: 44)
+            self.actionStackView.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+            self.actionStackView.axis = .horizontal
+
+//            let swiftuiView = topFullScreenSwiftUIView?.view!
+//            swiftuiView?.isHidden = true
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         configureUI()
-        addNotification()
+        addTimeObserver()
+        AppDelegate.orientationLock = .portrait
     }
     
     
@@ -299,63 +339,47 @@ class PlayerController: UIViewController {
              }
              switch status {
              case .readyToPlay:
+                 
+                 self.viewModel.updateTotalTime(totalTime: player.currentItem?.duration ?? .zero)
+//                 viewModel.resetReadyView()
+//                 viewModel.showingReadyView()
                  player.play()
              case .failed: return
              case .unknown: return
              @unknown default: return
              }
          }
-         
-
      }
-    
-    private func addNotification() {
-        NotificationCenter.default.addObserver(self, selector: #selector(gotoMirrorScreen), name: UIScene.willConnectNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(exitMirrorScreen), name: UIScene.didDisconnectNotification, object: nil)
-    }
-    
-    @objc func gotoMirrorScreen() {
-        AppDelegate.orientationLock = .all
-        UIApplication.shared.windows.first?.rootViewController?.present(playerViewController, animated: false)
-    }
-    
-    @objc func exitMirrorScreen() {
-        playerViewController.dismiss(animated: false)
-        AppDelegate.orientationLock = .portrait
-    }
+
     
     private func configureUI() {
+        view.backgroundColor = .white
         updatePlayer()
+        addBottomSwiftUIView()
+           
         playerLayer.frame = .init(x: 0, y: 0, width: view.frame.width, height: view.frame.width / 375 * 450)
         playerLayer.videoGravity = .resizeAspectFill
         player.isMuted = true
         view.layer.addSublayer(playerLayer)
         view.layer.masksToBounds = true
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleViewMainTapped)))
-
+        
+        addTopFullScreenSwiftUIView()
         view.addSubview(shadowView)
         view.addSubview(activityPlayStackView)
         view.addSubview(actionStackView)
         view.addSubview(activityFullScreenPlayStackView)
+        addGetReadyView()
         
-        NSLayoutConstraint.activate([
-            activityPlayStackView.topAnchor.constraint(equalTo: view.topAnchor, constant: widthDevice / 375 * 225 - 30),
-            activityPlayStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            activityFullScreenPlayStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityFullScreenPlayStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-        ])
-        activityPlayStackView.setDimensions(width: 204, height: 60)
-        activityFullScreenPlayStackView.setDimensions(width: 60, height: 204)
+        activityPlayStackView.frame = .init(x: widthDevice / 2 - 204 / 2, y: widthDevice / 375 * 225 - 30, width: 204, height: 60)
+        activityFullScreenPlayStackView.frame = .init(x: widthDevice / 2 - 60 / 2, y: heightDevice / 2 - 204 / 2, width: 60, height: 204)
         actionStackView.frame = .init(x: widthDevice - 44 - 16, y: insetTop + 16, width: 44, height: 147)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             self.actionStackView.isHidden = true
-            self.actionStackView.frame = .init(x: self.widthDevice / 2 - 22, y: self.widthDevice / 375 * 225 + 30 + 48 - 70 + 12, width: 44, height: 140)
-            self.actionStackView.transform = .init(rotationAngle: .pi / -2)
-            self.fullscreenButton.transform = .init(rotationAngle: .pi / -2)
-            self.tvcastButton.transform = .init(rotationAngle: .pi / 2)
-            self.mutedSoundButton.transform = .init(rotationAngle: .pi / 2)
+            self.actionStackView.axis = .horizontal
+            self.actionStackView.frame = .init(x: self.widthDevice / 2 - 70, y: self.widthDevice / 375 * 225 + 30 + 48 + 12, width: 144, height: 44)
+            self.actionStackView.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
             self.actionStackView.backgroundColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.4)
         }
         
@@ -364,8 +388,40 @@ class PlayerController: UIViewController {
         
         player.allowsExternalPlayback = true
         player.externalPlaybackVideoGravity = .resizeAspectFill
-
+    }
+    
+    private func addTimeObserver() {
+        let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main, using: { [weak self] currentTime in
+            self?.viewModel.updateCurrentTime(currentTime: currentTime)
+        })
+    }
+    
+    private func addBottomSwiftUIView() {
+        self.bottomProgressSwiftUIView = UIHostingController(rootView: bottomProgressView)
+        let swiftuiView = self.bottomProgressSwiftUIView!.view!
+        swiftuiView.frame = .init(x: 16, y: view.frame.width / 375 * 450, width: widthDevice - 32, height: heightDevice - view.frame.width / 375 * 450)
+        view.addSubview(swiftuiView)
+    }
+    
+    private func addTopFullScreenSwiftUIView() {
+//        self.topFullScreenSwiftUIView = UIHostingController(rootView: topFullScreenProgressView)
+//        let swiftuiView = self.topFullScreenSwiftUIView!.view!
+//        
+//        swiftuiView.isHidden = true
+//        swiftuiView.backgroundColor = .clear
+//        view.addSubview(swiftuiView)
+    }
+    
+    private func addGetReadyView() {
+        self.getReadySwiftUIView = UIHostingController(rootView: getReadyView)
+        let swiftuiView = self.getReadySwiftUIView!.view!
         
+        swiftuiView.backgroundColor = .clear
+        view.addSubview(swiftuiView)
+        swiftuiView.frame = .init(x: widthDevice / 2 - 204 / 2, y: widthDevice / 375 * 225 - 30, width: 204, height: 60)
+        swiftuiView.layer.zPosition = .infinity
+        swiftuiView.isUserInteractionEnabled = false
     }
     
     func updatePlayer() {
@@ -373,6 +429,7 @@ class PlayerController: UIViewController {
         
         let item = AVPlayerItem(url: url)
         item.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: nil)
+        
         self.player.replaceCurrentItem(with: item)
         self.isPlaying = true
         self.playVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
@@ -418,11 +475,9 @@ class PlayerController: UIViewController {
             player.seek(to: CMTime(seconds: .zero, preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
             
         } else if status == .normal {
-            
             self.updatePlayer()
             self.nextVideoBtn.alpha = 1
             self.nextVideoBtn.isUserInteractionEnabled = true
-            
         }
     }
          
