@@ -26,6 +26,7 @@ class PlayerViewModel: ObservableObject {
     @Published var seconds = 6
     @Published var textReady = "Get Ready"
     @Published var isShowingReadyView = false
+    @Published var isLastVideo = false
     
     @Published var isEnableNextButton = true
     @Published var isEnableBackButton = false
@@ -33,67 +34,26 @@ class PlayerViewModel: ObservableObject {
     
     var didTapNextButton: (() -> Void)?
     var didTapBackButton: (() -> Void)?
-    var taskReady = Task {}
+    let operationReadyQueue = OperationQueue()
+    var timerReady: Timer? = nil
     
     func resetReadyView() {
-        taskReady.cancel()
-        seconds = 6
-        textReady = "Get Ready"
-        
+        self.timerReady?.invalidate()
+        self.timerReady = nil
+        self.seconds = 6
+        self.textReady = "Get Ready"
     }
     
     func showingReadyView(completionShowing: @escaping () -> Void) {
-        
-        
-            isShowingReadyView = true
-            
-            if seconds == 6 {
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.seconds -= 1
-                    self.showingReadyView() {
-                        completionShowing()
-                    }
-                }
-                
-                return
-            }
-            
-            if seconds <= 5 && seconds > 0 {
-                textReady = "\(seconds)"
-                
-                if seconds >= 1 {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                        self.seconds -= 1
-                        
-                        if self.isShowingReadyView {
-                            self.showingReadyView() {
-                                completionShowing()
-                            }
-                        }
-                    }
-                }
-            } else {
-                self.textReady = "GO"
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    completionShowing()
-                    self.isShowingReadyView = false
-                }
-            }
-        
-    }
-    
-    @MainActor
-    func showingReadyViewV2(completionShowing: @escaping () -> Void) {
-        taskReady = Task {
         isShowingReadyView = true
         
         if seconds == 6 {
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            self.seconds -= 1
-            self.showingReadyView() {
-                completionShowing()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.seconds -= 1
+                self.showingReadyView() {
+                    completionShowing()
+                }
             }
             
             return
@@ -103,23 +63,57 @@ class PlayerViewModel: ObservableObject {
             textReady = "\(seconds)"
             
             if seconds >= 1 {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                self.seconds -= 1
-                
-                if self.isShowingReadyView {
-                    self.showingReadyView() {
-                        completionShowing()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.seconds -= 1
+                    
+                    if self.isShowingReadyView {
+                        self.showingReadyView() {
+                            completionShowing()
+                        }
                     }
                 }
             }
         } else {
             self.textReady = "GO"
             
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            completionShowing()
-            self.isShowingReadyView = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                completionShowing()
+                self.isShowingReadyView = false
+            }
         }
-        }
+    }
+    
+    @MainActor
+    func showingReadyViewV2(completionShowing: @escaping () -> Void) {
+        timerReady = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { timer in
+
+            if self.seconds == 6 {
+                self.isShowingReadyView = true
+                self.textReady = "Get Ready"
+                self.seconds -= 1
+                return
+            }
+            
+            if self.seconds <= 5 && self.seconds > 0 {
+                self.textReady = "\(self.seconds)"
+                self.seconds -= 1
+                return
+            }
+            
+            if self.seconds == 0 {
+                completionShowing()
+                self.textReady = "GO"
+                self.seconds -= 1
+                return
+            }
+            
+            if self.seconds == -1 {
+                self.isShowingReadyView = false
+                self.timerReady?.invalidate()
+                self.timerReady = nil
+                return
+            }
+        })
     }
     
     var currentURL: String? {
@@ -152,6 +146,7 @@ class PlayerViewModel: ObservableObject {
             for index in  0 ..< currentIndexURL {
                 self.currentTimeVieos[index] = 100000
             }
+            isLastVideo = true
             return .isLastVideo
         }
         
@@ -184,6 +179,7 @@ class PlayerViewModel: ObservableObject {
         isEnableNextButton = true
         
         currentIndexURL -= 1
+        isLastVideo = false
         for index in currentIndexURL ..< totalTimeVieos.count {
             self.currentTimeVieos[index] = 0
         }
@@ -201,6 +197,7 @@ class PlayerViewModel: ObservableObject {
         self._isEnableNextButton = .init(wrappedValue: true)
         self.didTapBackButton = nil
         self.didTapNextButton = nil
+        self._isLastVideo = .init(wrappedValue: false)
     }
     
     init(urls: [String]) {
@@ -214,6 +211,7 @@ class PlayerViewModel: ObservableObject {
         self._isEnableNextButton = .init(wrappedValue: true)
         self.didTapBackButton = nil
         self.didTapNextButton = nil
+        self._isLastVideo = .init(wrappedValue: false)
     }
     
 }

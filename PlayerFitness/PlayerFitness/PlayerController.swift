@@ -182,7 +182,7 @@ class PlayerController: UIViewController {
     }()
     
     @objc func handleMutedButtonTapped() {
-        
+        print("DEBUG: siuuuuuuuuuuuuuuuuuuuu")
     }
     
     @objc func handleFullScreenButtonTapped() {
@@ -296,7 +296,6 @@ class PlayerController: UIViewController {
         let width = size.width
         let height = size.height
         
-        
         //Is Landscape
         if width > height {
             self.playerLayer.frame = .init(origin: .zero, size: .init(width: widthDevice, height: heightDevice))
@@ -317,6 +316,10 @@ class PlayerController: UIViewController {
             swiftuiView?.isHidden = false
             swiftuiView?.frame = .init(x: 32, y: 20, width: width - 64, height: 10)
             
+            let getReadySwiftuiView = self.getReadySwiftUIView!.view!
+            getReadySwiftuiView.backgroundColor = .clear
+            getReadySwiftuiView.frame = .init(x: width / 2 - 204 / 2, y: height / 2 - 30 / 2, width: 204, height: 60)
+            
         } else {
 
             self.playerLayer.frame = .init(x: 0, y: 0, width: width, height: width / 375 * 450)
@@ -333,6 +336,10 @@ class PlayerController: UIViewController {
 
             let swiftuiView = topFullScreenSwiftUIView?.view!
             swiftuiView?.isHidden = true
+            
+            let getReadySwiftuiView = self.getReadySwiftUIView!.view!
+            getReadySwiftuiView.backgroundColor = .clear
+            getReadySwiftuiView.frame = .init(x: width / 2 - 204 / 2, y: width / 375 * 225 - 30, width: 204, height: 60)
         }
     }
     
@@ -343,7 +350,6 @@ class PlayerController: UIViewController {
         addTimeObserver()
         AppDelegate.orientationLock = .portrait
     }
-    
     
     // MARK: - Methods
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -459,41 +465,55 @@ class PlayerController: UIViewController {
     
     // MARK: - Selectors
     @objc func rewindNextTapped() {
-        var currentTime = player.currentTime().seconds
-        currentTime += 5
-        
-        player.seek(to: CMTime(value: CMTimeValue(currentTime), timescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
-        player.play()
-    }
-    
-    @objc func rewindBackTappedTapped() {
-        var currentTime = player.currentTime().seconds
-        currentTime -= 5
-        
-        player.seek(to: CMTime(value: CMTimeValue(currentTime), timescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
-        player.play()
-    }
-    
-    @objc func handleViewMainTapped() {
-        shadowView.isHidden = false
-        actionStackView.isHidden = false
-        
-        if isFullScreen {
-            activityFullScreenPlayStackView.isHidden = false
+        if viewModel.timerReady?.isValid == false || viewModel.timerReady?.isValid == nil {
+            var currentTime = player.currentTime().seconds
+            currentTime += 5
             
-        } else {
-            activityPlayStackView.isHidden = false
+            if currentTime != .nan && currentTime != .infinity {
+                player.seek(to: CMTime(value: CMTimeValue(currentTime), timescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
+                player.play()
+            }
         }
     }
     
+    @objc func rewindBackTappedTapped() {
+        if viewModel.timerReady?.isValid == false || viewModel.timerReady?.isValid == nil {
+            var currentTime = player.currentTime().seconds
+            currentTime -= 5
+            
+            player.seek(to: CMTime(value: CMTimeValue(currentTime), timescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
+            player.play()
+        }
+    }
+    
+    @objc func handleViewMainTapped() {
+        
+        shadowView.isHidden.toggle()
+        actionStackView.isHidden.toggle()
+        
+        if isFullScreen {
+            activityFullScreenPlayStackView.isHidden.toggle()
+            
+        } else {
+            activityPlayStackView.isHidden.toggle()
+        }
+        
+    }
+    
     @objc func playerItemDidFinishPlay() {
+        if viewModel.isLastVideo {
+            self.playVideoBtn.setImage(UIImage(named: AssetConstant.pauseVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+            return
+        }
+        
         let status = viewModel.itemDidFinishPlay()
 
         if status == .isLastVideo {
             self.playVideoBtn.setImage(UIImage(named: AssetConstant.pauseVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
             self.nextVideoBtn.alpha = 0.4
             self.nextVideoBtn.isUserInteractionEnabled = false
-            player.seek(to: CMTime(seconds: .zero, preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
+            self.player.seek(to: CMTime(seconds: .zero, preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
+            self.updatePlayer()
             
         } else if status == .normal {
             self.updatePlayer()
