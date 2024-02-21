@@ -63,25 +63,46 @@ struct ProgressPlayerView: View {
                 Spacer()
                 
                 HStack(alignment: .center, spacing: 8) {
-                    Text("Back")
-                        .foregroundColor(Color(red: 0.61, green: 0.61, blue: 0.63))
-                        .frame(width: (widthDevice - 48) / 2, height: 50)
-                        .background(alignment: .center) {
-                            RoundedRectangle(cornerRadius: 14)
-                            .inset(by: 0.75)
-                            .stroke(Color(red: 0.92, green: 0.92, blue: 0.94), lineWidth: 1.5)
+                    Button(action: {
+                        if viewModel.isEnableBackButton {
+                            viewModel.didTapBackButton?()
                         }
+                    }, label: {
+                        Text("Back")
+                            .foregroundColor(.black)
+                            .frame(width: (widthDevice - 48) / 2, height: 50)
+                            .background(alignment: .center) {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .inset(by: 0.75)
+                                    .stroke(.black, lineWidth: 1.5)
+                            }
+                            .opacity(viewModel.isEnableBackButton ? 1 : 0.6)
+                            
+                    })
+                    .allowsHitTesting(viewModel.isEnableBackButton)
+  
                     
-                    Text("Next")
-                        .frame(width: (widthDevice - 48) / 2, height: 50)
-                        .foregroundColor(.white)
-                        .background(alignment: .center) {
-                            RoundedRectangle(cornerRadius: 14)
-                                .inset(by: 0.75)
-//                                .stroke(Color(red: 0.92, green: 0.92, blue: 0.94), lineWidth: 1.5)
-                                .fill(Color(red: 0.95, green: 0.32, blue: 0.14))
-                    
+                    Button(action: {
+                        if viewModel.isEnableNextButton {
+                            viewModel.didTapNextButton?()
                         }
+                    }, label: {
+                        Text("Next")
+                            .frame(width: (widthDevice - 48) / 2, height: 50)
+                            .foregroundColor(.white)
+                            .background(alignment: .center) {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .inset(by: 0.75)
+                                    .fill(Color(red: 0.95, green: 0.32, blue: 0.14))
+//                                    .stroke(Color(red: 0.92, green: 0.92, blue: 0.94), lineWidth: 1.5)
+                                    
+                        
+                            }
+                            .opacity(viewModel.isEnableNextButton ? 1 : 0.6)
+                            
+                    })
+                    .allowsHitTesting(viewModel.isEnableNextButton)
+
                         
                 }
                 .padding(.bottom, 58)
@@ -127,7 +148,7 @@ struct ProgressVideoView: View {
         } else {
             let value = currentTimeVideo / totalTimeVideo
             
-            if value < 0.05 {
+            if CGFloat(value) * width < 6 {
                 return 6
             } else {
                 return CGFloat(value) * width

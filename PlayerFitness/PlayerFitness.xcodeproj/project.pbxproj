@@ -32,6 +32,7 @@
 		04684DDB2B709A200016CA32 /* Extension+UIKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extension+UIKit.swift"; sourceTree = "<group>"; };
 		04684DDD2B709E3D0016CA32 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 		04711F012B83349100E731B3 /* TestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestController.swift; sourceTree = "<group>"; };
+		0484504C2B85AEF200FD2C07 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0499D6572B6CA23E00EEE365 /* PlayerFitness.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PlayerFitness.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0499D65A2B6CA23E00EEE365 /* PlayerFitnessApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerFitnessApp.swift; sourceTree = "<group>"; };
 		0499D65C2B6CA23E00EEE365 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -86,6 +87,7 @@
 		0499D6592B6CA23E00EEE365 /* PlayerFitness */ = {
 			isa = PBXGroup;
 			children = (
+				0484504C2B85AEF200FD2C07 /* Info.plist */,
 				04684DD82B708BB30016CA32 /* Constant */,
 				04684DCF2B7081040016CA32 /* Resource */,
 				0499D65A2B6CA23E00EEE365 /* PlayerFitnessApp.swift */,
@@ -331,6 +333,7 @@
 				DEVELOPMENT_TEAM = AL5596JXF3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlayerFitness/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -361,6 +364,7 @@
 				DEVELOPMENT_TEAM = AL5596JXF3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PlayerFitness/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

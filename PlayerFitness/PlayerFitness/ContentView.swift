@@ -18,12 +18,22 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
 struct ContentView: View {
     
+//    var urls: [String] {
+//        
+//        return ["https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
+//                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
+//                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
+//                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4"]
+//        
+//    }
+    
     var urls: [String] {
         
-        return ["https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
+        return ["http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
                 "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
-                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4",
-                "https://cdn-fitness.eztechglobal.com/test_video/1_1.mp4"]
+                "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"]
         
     }
     

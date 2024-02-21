@@ -54,7 +54,7 @@ class PlayerController: UIViewController {
     
     // MARK: - SwiftUI View
     private var bottomProgressView: ProgressPlayerView = ProgressPlayerView()
-//    private var topFullScreenProgressView: TotalProgressView = TotalProgressView()
+    private var topFullScreenProgressView: TotalProgressView = TotalProgressView()
     private var getReadyView: GetReadyView = GetReadyView()
     
     private var bottomProgressSwiftUIView: UIHostingController<ProgressPlayerView>?
@@ -144,7 +144,6 @@ class PlayerController: UIViewController {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.fullscreen.rawValue), for: .normal)
         button.addTarget(self, action: #selector(handleFullScreenButtonTapped), for: .touchUpInside)
-        
         return button
     }()
     
@@ -152,19 +151,17 @@ class PlayerController: UIViewController {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.screencastPlayer.rawValue), for: .normal)
         button.addTarget(self, action: #selector(handleFullScreenButtonTapped), for: .touchUpInside)
-        
         return button
     }()
     
     override var shouldAutorotate: Bool {
-           return true
-       }
+        return true
+    }
     
     private lazy var mutedSoundButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: AssetConstant.soundPlayer.rawValue), for: .normal)
         button.addTarget(self, action: #selector(handleMutedButtonTapped), for: .touchUpInside)
-        
         return button
     }()
     
@@ -189,16 +186,14 @@ class PlayerController: UIViewController {
     }
     
     @objc func handleFullScreenButtonTapped() {
-
         if self.isFullScreen {
             self.setOrientationController(rotateOrientation: .portrait)
 
-            
         } else {
             self.setOrientationController(rotateOrientation: .landscapeLeft)
 
-
         }
+        
         isFullScreen.toggle()
     }
 
@@ -217,33 +212,45 @@ class PlayerController: UIViewController {
     }
     
     @objc func handleNextButtonTapped() {
-        let status = viewModel.nextVideo()
-        if status == .normal {
-            nextVideoBtn.alpha = 1
-            nextVideoBtn.isUserInteractionEnabled = true
-        } else if status == .isLastVideo {
-            nextVideoBtn.alpha = 0.4
-            nextVideoBtn.isUserInteractionEnabled = false
+        DispatchQueue.main.async {
+            let status = self.viewModel.nextVideo()
+            if status == .normal {
+                self.nextVideoBtn.alpha = 1
+                self.nextVideoBtn.isUserInteractionEnabled = true
+                
+            } else if status == .isLastVideo {
+                self.nextVideoBtn.alpha = 0.4
+                self.nextVideoBtn.isUserInteractionEnabled = false
+            }
+            
+            self.backVideoBtn.alpha = 1
+            self.backVideoBtn.isUserInteractionEnabled = true
+            self.player.pause()
+            self.playVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+            self.playFullScreenVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+            self.updatePlayer()
         }
-        
-        backVideoBtn.alpha = 1
-        backVideoBtn.isUserInteractionEnabled = true
-        updatePlayer()
     }
     
     @objc func handleBackButtonTapped() {
-        let status = viewModel.backVideo()
-        if status == .normal {
-            backVideoBtn.alpha = 1
-            backVideoBtn.isUserInteractionEnabled = true
-        } else if status == .isFirstVideo {
-            backVideoBtn.alpha = 0.4
-            backVideoBtn.isUserInteractionEnabled = false
+        DispatchQueue.main.async {
+            let status = self.viewModel.backVideo()
+            if status == .normal {
+                self.backVideoBtn.alpha = 1
+                self.backVideoBtn.isUserInteractionEnabled = true
+            } else if status == .isFirstVideo {
+                self.backVideoBtn.alpha = 0.4
+                self.backVideoBtn.isUserInteractionEnabled = false
+            }
+            
+            self.nextVideoBtn.alpha = 1
+            self.nextVideoBtn.isUserInteractionEnabled = true
+            self.player.pause()
+            self.playVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+            self.playFullScreenVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+            self.updatePlayer()
         }
-        
-        nextVideoBtn.alpha = 1
-        nextVideoBtn.isUserInteractionEnabled = true
-        updatePlayer()
+
     }
     
     @objc func handleShadowViewTapped() {
@@ -263,8 +270,19 @@ class PlayerController: UIViewController {
     init(urls: [String]) {
         PlayerViewModel.shared.updateViewModel(urls: urls)
         self.viewModel = PlayerViewModel.shared
-        
+
         super.init(nibName: nil, bundle: nil)
+        self.viewModel.didTapBackButton = { [weak self] in
+            self?.handleBackButtonTapped()
+        }
+        
+        self.viewModel.didTapNextButton = { [weak self] in
+            self?.handleNextButtonTapped()
+        }
+    }
+    
+    deinit {
+        print("DEBUG: PlayerViewController deinit By Viet")
     }
     
     required init?(coder: NSCoder) {
@@ -295,9 +313,9 @@ class PlayerController: UIViewController {
             self.activityFullScreenPlayStackView.frame = .init(x: width / 2 - 204 / 2, y: height / 2 - 30 / 2, width: 204, height: 60)
             self.activityFullScreenPlayStackView.axis = .horizontal
             
-//            let swiftuiView = topFullScreenSwiftUIView?.view
-//            swiftuiView?.isHidden = false
-//            swiftuiView?.frame = .init(x: 32, y: 20, width: width - 64, height: 10)
+            let swiftuiView = topFullScreenSwiftUIView?.view
+            swiftuiView?.isHidden = false
+            swiftuiView?.frame = .init(x: 32, y: 20, width: width - 64, height: 10)
             
         } else {
 
@@ -313,8 +331,8 @@ class PlayerController: UIViewController {
             self.actionStackView.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
             self.actionStackView.axis = .horizontal
 
-//            let swiftuiView = topFullScreenSwiftUIView?.view!
-//            swiftuiView?.isHidden = true
+            let swiftuiView = topFullScreenSwiftUIView?.view!
+            swiftuiView?.isHidden = true
         }
     }
     
@@ -341,9 +359,11 @@ class PlayerController: UIViewController {
              case .readyToPlay:
                  
                  self.viewModel.updateTotalTime(totalTime: player.currentItem?.duration ?? .zero)
-//                 viewModel.resetReadyView()
-//                 viewModel.showingReadyView()
-                 player.play()
+                 viewModel.resetReadyView()
+                 viewModel.showingReadyViewV2() { [weak self] in
+                     self?.player.play()
+                 }
+                 
              case .failed: return
              case .unknown: return
              @unknown default: return
@@ -405,16 +425,17 @@ class PlayerController: UIViewController {
     }
     
     private func addTopFullScreenSwiftUIView() {
-//        self.topFullScreenSwiftUIView = UIHostingController(rootView: topFullScreenProgressView)
-//        let swiftuiView = self.topFullScreenSwiftUIView!.view!
-//        
-//        swiftuiView.isHidden = true
-//        swiftuiView.backgroundColor = .clear
-//        view.addSubview(swiftuiView)
+        self.topFullScreenSwiftUIView = UIHostingController(rootView: topFullScreenProgressView)
+        let swiftuiView = self.topFullScreenSwiftUIView!.view!
+        
+        swiftuiView.isHidden = true
+        swiftuiView.backgroundColor = .clear
+        view.addSubview(swiftuiView)
     }
     
     private func addGetReadyView() {
         self.getReadySwiftUIView = UIHostingController(rootView: getReadyView)
+        
         let swiftuiView = self.getReadySwiftUIView!.view!
         
         swiftuiView.backgroundColor = .clear
