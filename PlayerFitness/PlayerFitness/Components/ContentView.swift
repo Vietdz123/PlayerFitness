@@ -42,6 +42,9 @@ struct ContentView: View {
             PlayerCoordinator(urls: urls)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .ignoresSafeArea()
+                .overlay(alignment: .center) {
+                    RestFullScreenView()
+                }
         }
         
         

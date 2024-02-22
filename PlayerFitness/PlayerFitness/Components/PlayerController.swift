@@ -54,10 +54,12 @@ class PlayerController: UIViewController {
     
     // MARK: - SwiftUI View
     private var bottomProgressView: ProgressPlayerView = ProgressPlayerView()
+    private var bottomFullScreenProgressView: BottomFullScreenProgressView = BottomFullScreenProgressView()
     private var topFullScreenProgressView: TotalProgressView = TotalProgressView()
     private var getReadyView: GetReadyView = GetReadyView()
     
     private var bottomProgressSwiftUIView: UIHostingController<ProgressPlayerView>?
+    private var bottomFullScreenProgressSwiftUIView: UIHostingController<BottomFullScreenProgressView>?
     private var topFullScreenSwiftUIView: UIHostingController<TotalProgressView>?
     private var getReadySwiftUIView: UIHostingController<GetReadyView>?
     
@@ -279,6 +281,10 @@ class PlayerController: UIViewController {
         self.viewModel.didTapNextButton = { [weak self] in
             self?.handleNextButtonTapped()
         }
+        
+        self.viewModel.didRestCompletion = { [weak self] in
+            self?.handleNextButtonTapped()
+        }
     }
     
     deinit {
@@ -320,6 +326,10 @@ class PlayerController: UIViewController {
             getReadySwiftuiView.backgroundColor = .clear
             getReadySwiftuiView.frame = .init(x: width / 2 - 204 / 2, y: height / 2 - 30 / 2, width: 204, height: 60)
             
+            let bottomFullScreenProgressView = self.bottomFullScreenProgressSwiftUIView!.view!
+            bottomFullScreenProgressView.frame = .init(x: 0, y: height - 60 - 24, width: width, height: 60)
+            viewModel.isShowingBottomProgressView = true
+            
         } else {
 
             self.playerLayer.frame = .init(x: 0, y: 0, width: width, height: width / 375 * 450)
@@ -340,6 +350,8 @@ class PlayerController: UIViewController {
             let getReadySwiftuiView = self.getReadySwiftUIView!.view!
             getReadySwiftuiView.backgroundColor = .clear
             getReadySwiftuiView.frame = .init(x: width / 2 - 204 / 2, y: width / 375 * 225 - 30, width: 204, height: 60)
+            
+            viewModel.isShowingBottomProgressView = false
         }
     }
     
@@ -348,7 +360,9 @@ class PlayerController: UIViewController {
         
         configureUI()
         addTimeObserver()
-        AppDelegate.orientationLock = .portrait
+        
+        AppDelegate.orientationLock = .landscape
+        setOrientationController(rotateOrientation: .landscapeLeft)
     }
     
     // MARK: - Methods
@@ -391,6 +405,7 @@ class PlayerController: UIViewController {
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleViewMainTapped)))
         
         addTopFullScreenSwiftUIView()
+        addBottomFullScreenProgressSwiftUIView()
         view.addSubview(shadowView)
         view.addSubview(activityPlayStackView)
         view.addSubview(actionStackView)
@@ -428,6 +443,13 @@ class PlayerController: UIViewController {
         let swiftuiView = self.bottomProgressSwiftUIView!.view!
         swiftuiView.frame = .init(x: 16, y: view.frame.width / 375 * 450, width: widthDevice - 32, height: heightDevice - view.frame.width / 375 * 450)
         view.addSubview(swiftuiView)
+    }
+    
+    private func addBottomFullScreenProgressSwiftUIView() {
+        self.bottomFullScreenProgressSwiftUIView = UIHostingController(rootView: bottomFullScreenProgressView)
+        let swiftuiView = self.bottomFullScreenProgressSwiftUIView!.view!
+        view.addSubview(swiftuiView)
+        swiftuiView.backgroundColor = .clear
     }
     
     private func addTopFullScreenSwiftUIView() {

@@ -19,100 +19,86 @@ enum StatusUpdatePlayer: Int, CaseIterable {
 class PlayerViewModel: ObservableObject {
     
     var urls: [String] = []
-    static let shared: PlayerViewModel = .init(urls: [])
-    @Published var totalTimeVieos: [Float]
-    @Published var currentTimeVieos: [Float]
+    static let shared: PlayerViewModel = PlayerViewModel()
+    @Published var totalTimeVieos: [Float] = []
+    @Published var currentTimeVieos: [Float] = []
     
-    @Published var seconds = 6
+    @Published var secondsReady = 6
     @Published var textReady = "Get Ready"
     @Published var isShowingReadyView = false
     @Published var isLastVideo = false
     
     @Published var isEnableNextButton = true
     @Published var isEnableBackButton = false
-    @Published var isCallcelShowingView = false
+    @Published var isShowingBottomProgressView = false
+    
+    @Published var isShowingRestFullScreenView = true
+    @Published var secondsRest = 15
     
     var didTapNextButton: (() -> Void)?
     var didTapBackButton: (() -> Void)?
+    var didRestCompletion: (() -> Void)?
     let operationReadyQueue = OperationQueue()
     var timerReady: Timer? = nil
+    var timerRest: Timer? = nil
     
     func resetReadyView() {
         self.timerReady?.invalidate()
         self.timerReady = nil
-        self.seconds = 6
+        self.secondsReady = 6
         self.textReady = "Get Ready"
     }
     
-    func showingReadyView(completionShowing: @escaping () -> Void) {
-        isShowingReadyView = true
-        
-        if seconds == 6 {
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                self.seconds -= 1
-                self.showingReadyView() {
-                    completionShowing()
-                }
-            }
-            
-            return
-        }
-        
-        if seconds <= 5 && seconds > 0 {
-            textReady = "\(seconds)"
-            
-            if seconds >= 1 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.seconds -= 1
-                    
-                    if self.isShowingReadyView {
-                        self.showingReadyView() {
-                            completionShowing()
-                        }
-                    }
-                }
-            }
-        } else {
-            self.textReady = "GO"
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                completionShowing()
-                self.isShowingReadyView = false
-            }
-        }
+    func resetRest() {
+        self.timerRest?.invalidate()
+        self.timerRest = nil
+        self.secondsRest = 15
     }
     
-    @MainActor
     func showingReadyViewV2(completionShowing: @escaping () -> Void) {
         timerReady = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { timer in
 
-            if self.seconds == 6 {
+            if self.secondsReady == 6 {
                 self.isShowingReadyView = true
                 self.textReady = "Get Ready"
-                self.seconds -= 1
+                self.secondsReady -= 1
                 return
             }
             
-            if self.seconds <= 5 && self.seconds > 0 {
-                self.textReady = "\(self.seconds)"
-                self.seconds -= 1
+            if self.secondsReady <= 5 && self.secondsReady > 0 {
+                self.textReady = "\(self.secondsReady)"
+                self.secondsReady -= 1
                 return
             }
             
-            if self.seconds == 0 {
+            if self.secondsReady == 0 {
                 completionShowing()
                 self.textReady = "GO"
-                self.seconds -= 1
+                self.secondsReady -= 1
                 return
             }
             
-            if self.seconds == -1 {
+            if self.secondsReady == -1 {
                 self.isShowingReadyView = false
                 self.timerReady?.invalidate()
                 self.timerReady = nil
                 return
             }
+        })
+    }
+    
+    func startRest(completionShowing: @escaping () -> Void) {
+        timerRest = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { timer in
+
+            if self.secondsRest > 0 {
+                self.isShowingRestFullScreenView = true
+                self.secondsRest -= 1
+                return
+            }
+            
+            self.resetRest()
+            self.isShowingRestFullScreenView = false
+            self.didRestCompletion?()
         })
     }
     
@@ -190,7 +176,7 @@ class PlayerViewModel: ObservableObject {
         self.urls = urls
         self._totalTimeVieos = .init(wrappedValue: Array(repeating: 0, count: urls.count))
         self._currentTimeVieos = .init(wrappedValue: Array(repeating: 0, count: urls.count))
-        self._seconds = .init(wrappedValue: 6)
+        self._secondsReady = .init(wrappedValue: 6)
         self._textReady = .init(wrappedValue: "Get Ready")
         self._isShowingReadyView = .init(wrappedValue: false)
         self._isEnableBackButton = .init(wrappedValue: false)
@@ -198,20 +184,9 @@ class PlayerViewModel: ObservableObject {
         self.didTapBackButton = nil
         self.didTapNextButton = nil
         self._isLastVideo = .init(wrappedValue: false)
+        self._isShowingRestFullScreenView = .init(wrappedValue: true)
     }
     
-    init(urls: [String]) {
-        self.urls = urls
-        self._totalTimeVieos = .init(wrappedValue: Array(repeating: 0, count: urls.count))
-        self._currentTimeVieos = .init(wrappedValue: Array(repeating: 0, count: urls.count))
-        self._seconds = .init(wrappedValue: 6)
-        self._textReady = .init(wrappedValue: "Get Ready")
-        self._isShowingReadyView = .init(wrappedValue: false)
-        self._isEnableBackButton = .init(wrappedValue: false)
-        self._isEnableNextButton = .init(wrappedValue: true)
-        self.didTapBackButton = nil
-        self.didTapNextButton = nil
-        self._isLastVideo = .init(wrappedValue: false)
-    }
+    init() {}
     
 }
