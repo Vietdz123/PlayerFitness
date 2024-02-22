@@ -9,19 +9,19 @@ import SwiftUI
 import AVFoundation
 
 struct RestFullScreenView: View {
-                         
+    
     @StateObject private var viewModel = PlayerViewModel.shared
     
     var body: some View {
-        if viewModel.isShowingRestFullScreenView {
+        if viewModel.isShowingRestFullScreenView && viewModel.isFullScreen {
             
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 0) {
                 
                 TotalProgressView()
-                    .frame(width: heightDevice - 64, height: 8)
+                    .frame(width: widthDevice - 64, height: 8)
                     .padding(.top, 16)
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Next: \(viewModel.currentIndexURL + 1)/\(viewModel.totalTimeVieos.count)")
                         .foregroundColor(Color(red: 0.21, green: 0.21, blue: 0.27))
                     
@@ -29,14 +29,15 @@ struct RestFullScreenView: View {
                         .font(.system(size: 22))
                         .foregroundColor(.black)
                 }
-                .padding(.top, 12)
+                .padding(.top, 28)
                 
                 HStack(alignment: .bottom, spacing: 36) {
                     Image("next_thumb")
                         .resizable()
-                        .frame(width: heightDevice / 812 * 366, height: heightDevice / 812 * 221)
+                        .frame(width: (widthDevice - 64 - 36) / 2, height: (heightDevice - 116 - 38))
                         .cornerRadius(14)
-                        
+                        .padding(.top, 12)
+                    
                     VStack(alignment: .center, spacing: 0) {
                         Spacer()
                         
@@ -60,13 +61,14 @@ struct RestFullScreenView: View {
                                     .background {
                                         RoundedRectangle(cornerRadius: 14)
                                             .fill(Color(red: 0.21, green: 0.21, blue: 0.27))
-                                            
+                                        
                                     }
-                                    
+                                
                             })
                             
                             Button(action: {
                                 if viewModel.isEnableNextButton {
+                                    viewModel.resetRest()
                                     viewModel.didTapNextButton?()
                                 }
                             }, label: {
@@ -79,7 +81,7 @@ struct RestFullScreenView: View {
                                             .fill(Color(red: 0.95, green: 0.32, blue: 0.14))
                                     }
                                     .opacity(viewModel.isEnableNextButton ? 1 : 0.6)
-                                    
+                                
                             })
                             .allowsHitTesting(viewModel.isEnableNextButton)
                         }
@@ -89,14 +91,18 @@ struct RestFullScreenView: View {
                     
                     
                 }
-                    
+                
+                Spacer()
+                
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.white)
+            
         }
+        
     }
     
-    
+
     func getTimeString() -> String {
         let time = CMTime(seconds: Double(viewModel.secondsRest), preferredTimescale: 1)
         return time.getTimeString() ?? "00:00"

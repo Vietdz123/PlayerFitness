@@ -19,6 +19,7 @@ extension UIViewController {
                     let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
                 else { return }
             
+            print("DEBUG: \(windowScene.interfaceOrientation.isPortrait) windowScene.interfaceOrientation.isPortrait")
             if windowScene.interfaceOrientation.isPortrait {
                 AppDelegate.orientationLock = .landscape
             } else {
@@ -45,7 +46,6 @@ class PlayerController: UIViewController {
     var player = AVPlayer()
     private var timeObserverToken: Any?
     private var isPlaying: Bool = true
-    private var isFullScreen: Bool = false
     private lazy var playerLayer = AVPlayerLayer(player: player)
     
     override var prefersStatusBarHidden: Bool {
@@ -188,7 +188,7 @@ class PlayerController: UIViewController {
     }
     
     @objc func handleFullScreenButtonTapped() {
-        if self.isFullScreen {
+        if viewModel.isFullScreen {
             self.setOrientationController(rotateOrientation: .portrait)
 
         } else {
@@ -196,7 +196,7 @@ class PlayerController: UIViewController {
 
         }
         
-        isFullScreen.toggle()
+        viewModel.isFullScreen.toggle()
     }
 
     @objc func handlePlayButtonTapped() {
@@ -256,7 +256,7 @@ class PlayerController: UIViewController {
     }
     
     @objc func handleShadowViewTapped() {
-        if !isFullScreen {
+        if !viewModel.isFullScreen {
             shadowView.isHidden = true
             activityPlayStackView.isHidden = true
             actionStackView.isHidden = true
@@ -314,7 +314,7 @@ class PlayerController: UIViewController {
           
             self.actionStackView.axis = .vertical
             self.actionStackView.frame = .init(x: width - 36 - 44, y: 36, width: 44, height: 144)
-            self.actionStackView.layoutMargins = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: -20)
+            self.actionStackView.layoutMargins = UIEdgeInsets(top: 4, left: 6, bottom: 4, right: -6)
             self.activityFullScreenPlayStackView.frame = .init(x: width / 2 - 204 / 2, y: height / 2 - 30 / 2, width: 204, height: 60)
             self.activityFullScreenPlayStackView.axis = .horizontal
             
@@ -341,7 +341,7 @@ class PlayerController: UIViewController {
             self.fullscreenButton.setImage(UIImage(named: AssetConstant.fullscreen.rawValue), for: .normal)
             
             self.actionStackView.frame = .init(x: width / 2 - 70, y: width / 375 * 225 + 30 + 48 + 12, width: 140, height: 44)
-            self.actionStackView.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
+            self.actionStackView.layoutMargins = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
             self.actionStackView.axis = .horizontal
 
             let swiftuiView = topFullScreenSwiftUIView?.view!
@@ -361,8 +361,7 @@ class PlayerController: UIViewController {
         configureUI()
         addTimeObserver()
         
-        AppDelegate.orientationLock = .landscape
-        setOrientationController(rotateOrientation: .landscapeLeft)
+        AppDelegate.orientationLock = .portrait
     }
     
     // MARK: - Methods
@@ -419,8 +418,8 @@ class PlayerController: UIViewController {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             self.actionStackView.isHidden = true
             self.actionStackView.axis = .horizontal
-            self.actionStackView.frame = .init(x: self.widthDevice / 2 - 70, y: self.widthDevice / 375 * 225 + 30 + 48 + 12, width: 144, height: 44)
-            self.actionStackView.layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
+            self.actionStackView.frame = .init(x: self.widthDevice / 2 - 70, y: self.widthDevice / 375 * 225 + 30 + 48 + 12, width: 152, height: 44)
+            self.actionStackView.layoutMargins = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 12)
             self.actionStackView.backgroundColor = UIColor(red: 1, green: 1, blue: 1, alpha: 0.4)
         }
         
@@ -474,14 +473,19 @@ class PlayerController: UIViewController {
     }
     
     func updatePlayer() {
-        guard let currentURL = viewModel.currentURL, let url = URL(string: currentURL) else {return}
-        
-        let item = AVPlayerItem(url: url)
-        item.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: nil)
-        
-        self.player.replaceCurrentItem(with: item)
-        self.isPlaying = true
-        self.playVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+        Task {
+            guard let currentURL = await viewModel.getCurrentURL(), let url = URL(string: currentURL) else {return}
+             
+            let currentUrlViewModel = await viewModel.getCurrentURL()
+            print("DEBUG: \(currentUrlViewModel) and \(currentURL)")
+            if currentURL != currentUrlViewModel {return}
+            let item = AVPlayerItem(url: url)
+            item.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: nil)
+            
+            self.player.replaceCurrentItem(with: item)
+            self.isPlaying = true
+            self.playVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+        }
     }
     
     
@@ -513,7 +517,7 @@ class PlayerController: UIViewController {
         shadowView.isHidden.toggle()
         actionStackView.isHidden.toggle()
         
-        if isFullScreen {
+        if viewModel.isFullScreen {
             activityFullScreenPlayStackView.isHidden.toggle()
             
         } else {
@@ -525,6 +529,15 @@ class PlayerController: UIViewController {
     @objc func playerItemDidFinishPlay() {
         if viewModel.isLastVideo {
             self.playVideoBtn.setImage(UIImage(named: AssetConstant.pauseVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+            return
+        }
+        
+        if viewModel.currentIndexURL % 2 == 0 {
+            viewModel.isShowingRestFullScreenView = true
+            viewModel.resetRest()
+            viewModel.startRest {
+                
+            }
             return
         }
         

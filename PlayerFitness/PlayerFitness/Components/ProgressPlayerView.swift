@@ -51,50 +51,69 @@ struct ProgressPlayerView: View {
                 TotalProgressView()
                     .padding(.top, 28)
                 
-                Text("Slow Jog On The Sport")
-                    .fontWeight(.semibold)
-                    .padding(.top, 16)
-                    .font(.system(size: 16))
-                
-                Text(getTimeString())
-                    .font(.system(size: 34))
-                    .fontWeight(.semibold)
+                if !viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen {
+                    Text("Slow Jog On The Sport")
+                        .fontWeight(.semibold)
+                        .padding(.top, 16)
+                        .font(.system(size: 16))
+                    
+                    Text(getTimeString())
+                        .font(.system(size: 34))
+                        .fontWeight(.semibold)
+                } else if viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen {
+                    Text("Rest")
+                        .font(.system(size: 22))
+                        .foregroundColor(.black)
+                        .padding(.top, 16)
+                    
+                    Text(getTimeRestString())
+                        .font(.system(size: 34))
+                        .fontWeight(.semibold)
+                }
                 
                 Spacer()
                 
                 HStack(alignment: .center, spacing: 8) {
                     Button(action: {
-                        if viewModel.isEnableBackButton {
+                        if viewModel.isEnableBackButton && !viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen {
                             viewModel.didTapBackButton?()
+                            return
                         }
+                        
+                        viewModel.secondsRest += 20
                     }, label: {
-                        Text("Back")
-                            .foregroundColor(.black)
+                        Text(!viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen ? "Back" : "+20s")
+                            .foregroundColor(!viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen ? (viewModel.isEnableBackButton ? Color(red: 0.95, green: 0.32, blue: 0.14) : Color(red: 0.61, green: 0.61, blue: 0.63)) : .white)
                             .frame(width: (widthDevice - 48) / 2, height: 50)
                             .background(alignment: .center) {
                                 RoundedRectangle(cornerRadius: 14)
-                                    .inset(by: 0.75)
-                                    .stroke(.black, lineWidth: 1.5)
+                                    .stroke(viewModel.isEnableBackButton ? Color(red: 0.95, green: 0.32, blue: 0.14) : Color(red: 0.92, green: 0.92, blue: 0.94).opacity(0.6), lineWidth: 1.5)
+                                    .background(
+                                        !viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen ? .white : Color(red: 0.21, green: 0.21, blue: 0.27)
+                                    )
+                                    .cornerRadius(14, corners: .allCorners)
                             }
-                            .opacity(viewModel.isEnableBackButton ? 1 : 0.6)
                             
                     })
-                    .allowsHitTesting(viewModel.isEnableBackButton)
+                    .allowsHitTesting(viewModel.isEnableBackButton || viewModel.isShowingRestFullScreenView)
   
                     
                     Button(action: {
-                        if viewModel.isEnableNextButton {
+                        if viewModel.isEnableNextButton && !viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen {
                             viewModel.didTapNextButton?()
+                            return 
                         }
+                        
+                        viewModel.resetRest()
+                        viewModel.didTapNextButton?()
                     }, label: {
-                        Text("Next")
+                        Text(!viewModel.isShowingRestFullScreenView && !viewModel.isFullScreen ? "Next" : "Skip")
                             .frame(width: (widthDevice - 48) / 2, height: 50)
                             .foregroundColor(.white)
                             .background(alignment: .center) {
                                 RoundedRectangle(cornerRadius: 14)
                                     .inset(by: 0.75)
                                     .fill(Color(red: 0.95, green: 0.32, blue: 0.14))
-//                                    .stroke(Color(red: 0.92, green: 0.92, blue: 0.94), lineWidth: 1.5)
                                     
                         
                             }
@@ -114,6 +133,11 @@ struct ProgressPlayerView: View {
     
     func getTimeString() -> String {
         let time = CMTime(seconds: Double(viewModel.currentTimeVieos[viewModel.currentIndexURL] ), preferredTimescale: 1)
+        return time.getTimeString() ?? "00:00"
+    }
+    
+    func getTimeRestString() -> String {
+        let time = CMTime(seconds: Double(viewModel.secondsRest), preferredTimescale: 1)
         return time.getTimeString() ?? "00:00"
     }
 }

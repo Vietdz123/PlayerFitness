@@ -32,8 +32,9 @@ class PlayerViewModel: ObservableObject {
     @Published var isEnableBackButton = false
     @Published var isShowingBottomProgressView = false
     
-    @Published var isShowingRestFullScreenView = true
-    @Published var secondsRest = 15
+    @Published var isShowingRestFullScreenView = false
+    @Published var secondsRest = 16
+    @Published var isFullScreen: Bool = false
     
     var didTapNextButton: (() -> Void)?
     var didTapBackButton: (() -> Void)?
@@ -52,7 +53,8 @@ class PlayerViewModel: ObservableObject {
     func resetRest() {
         self.timerRest?.invalidate()
         self.timerRest = nil
-        self.secondsRest = 15
+        self.secondsRest = 16
+        self.isShowingRestFullScreenView = false
     }
     
     func showingReadyViewV2(completionShowing: @escaping () -> Void) {
@@ -102,12 +104,23 @@ class PlayerViewModel: ObservableObject {
         })
     }
     
-    var currentURL: String? {
+    @MainActor
+    func getCurrentURL() async -> String? {
         if urls.isEmpty || currentIndexURL < 0 || currentIndexURL > urls.count - 1  {
             return nil
         }
         
-        return urls[currentIndexURL]
+        let file = FileService.shared.readVideoUrl(urlVideo: urls[currentIndexURL])
+        if file != nil {
+            print("DEBUG: \(file) file")
+            return file
+        } else {
+            let file =  await FileService.shared.writeToSource(urlVideo: urls[currentIndexURL])
+            
+            print("DEBUG: \(file) cac")
+            return file
+        }
+        
     }
     
     @Published var currentIndexURL: Int = 0
@@ -174,17 +187,19 @@ class PlayerViewModel: ObservableObject {
     
     func updateViewModel(urls: [String]) {
         self.urls = urls
-        self._totalTimeVieos = .init(wrappedValue: Array(repeating: 0, count: urls.count))
-        self._currentTimeVieos = .init(wrappedValue: Array(repeating: 0, count: urls.count))
-        self._secondsReady = .init(wrappedValue: 6)
-        self._textReady = .init(wrappedValue: "Get Ready")
-        self._isShowingReadyView = .init(wrappedValue: false)
-        self._isEnableBackButton = .init(wrappedValue: false)
-        self._isEnableNextButton = .init(wrappedValue: true)
+        self.totalTimeVieos = Array(repeating: 0, count: urls.count)
+        self.currentTimeVieos = Array(repeating: 0, count: urls.count)
+        self.secondsReady = 3
+        self.textReady = "Get Ready"
+        self.isShowingReadyView = false
+        self.isEnableBackButton = false
+        self.isEnableNextButton = true
         self.didTapBackButton = nil
         self.didTapNextButton = nil
-        self._isLastVideo = .init(wrappedValue: false)
-        self._isShowingRestFullScreenView = .init(wrappedValue: true)
+        self.isLastVideo = false
+        self.isShowingRestFullScreenView = false
+        self.isFullScreen = false
+        self.secondsRest = 16
     }
     
     init() {}

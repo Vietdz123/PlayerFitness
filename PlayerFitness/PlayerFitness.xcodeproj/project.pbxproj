@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		040FEC3C2B86EBF0000680E8 /* BottomFullScreenProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040FEC3B2B86EBF0000680E8 /* BottomFullScreenProgressView.swift */; };
 		040FEC3E2B86FC34000680E8 /* RestFullScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040FEC3D2B86FC34000680E8 /* RestFullScreenView.swift */; };
+		040FEC402B874B25000680E8 /* FileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040FEC3F2B874B25000680E8 /* FileService.swift */; };
 		044B16242B84850300B07BFD /* ProgressPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B16232B84850300B07BFD /* ProgressPlayerView.swift */; };
 		044B16262B84A95D00B07BFD /* GetReadyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B16252B84A95D00B07BFD /* GetReadyView.swift */; };
 		046050A02B71D34D00BBAB3C /* AVController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0460509F2B71D34D00BBAB3C /* AVController.swift */; };
@@ -28,6 +29,7 @@
 /* Begin PBXFileReference section */
 		040FEC3B2B86EBF0000680E8 /* BottomFullScreenProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomFullScreenProgressView.swift; sourceTree = "<group>"; };
 		040FEC3D2B86FC34000680E8 /* RestFullScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestFullScreenView.swift; sourceTree = "<group>"; };
+		040FEC3F2B874B25000680E8 /* FileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileService.swift; sourceTree = "<group>"; };
 		044B16232B84850300B07BFD /* ProgressPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPlayerView.swift; sourceTree = "<group>"; };
 		044B16252B84A95D00B07BFD /* GetReadyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetReadyView.swift; sourceTree = "<group>"; };
 		0460509F2B71D34D00BBAB3C /* AVController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVController.swift; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 			children = (
 				04684DDD2B709E3D0016CA32 /* PlayerViewModel.swift */,
 				044B16232B84850300B07BFD /* ProgressPlayerView.swift */,
+				040FEC3F2B874B25000680E8 /* FileService.swift */,
 				040FEC3B2B86EBF0000680E8 /* BottomFullScreenProgressView.swift */,
 				044B16252B84A95D00B07BFD /* GetReadyView.swift */,
 				0499D6682B6CA26D00EEE365 /* PlayerController.swift */,
@@ -207,6 +210,7 @@
 				04684DDE2B709E3D0016CA32 /* PlayerViewModel.swift in Sources */,
 				04684DD72B7081C40016CA32 /* Extension+SwiftUI.swift in Sources */,
 				0499D65D2B6CA23E00EEE365 /* ContentView.swift in Sources */,
+				040FEC402B874B25000680E8 /* FileService.swift in Sources */,
 				04711F022B83349100E731B3 /* TestController.swift in Sources */,
 				0499D65B2B6CA23E00EEE365 /* PlayerFitnessApp.swift in Sources */,
 				0499D6692B6CA26D00EEE365 /* PlayerController.swift in Sources */,
