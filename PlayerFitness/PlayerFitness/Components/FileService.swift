@@ -10,6 +10,7 @@ import SwiftUI
 class FileService {
     
     static let shared = FileService()
+    let success = "success"
     
      var relativePath: URL? {
          return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Video-Cached-By-Viet")
@@ -18,7 +19,7 @@ class FileService {
     func readVideoUrl(urlVideo: String) -> String? {
         guard let url = URL(string: urlVideo) else {return nil}
         
-        guard let url = relativePath?.appendingPathComponent(urlVideo.lastPathComponent) else { return nil }
+        guard let url = relativePath?.appendingPathComponent("\(success)_\(url.lastPathComponent)") else { return nil }
         if FileManager.default.fileExists(atPath: url.path) {
             return url.absoluteString
         }
@@ -44,10 +45,12 @@ class FileService {
             print("DEBUG: quan que \(relativePath?.appendingPathComponent(url.lastPathComponent).absoluteString)")
             let (data, _) = try await URLSession.shared.data(for: URLRequest(url: url))
             try data.write(to: relativePath!.appendingPathComponent(url.lastPathComponent).absoluteURL)
-            return relativePath!.appendingPathComponent(url.lastPathComponent).absoluteString
+            
+            try FileManager.default.moveItem(atPath: relativePath!.appendingPathComponent(url.lastPathComponent).path(), toPath: relativePath!.appendingPathComponent("\(success)_\(url.lastPathComponent)").path())
+            return relativePath!.appendingPathComponent("\(success)_\(url.lastPathComponent)").absoluteString
             
         } catch {
-            print("DEBUG: \(error.localizedDescription)")
+            print("DEBUG: \(error.localizedDescription) error")
             return nil
         }
         

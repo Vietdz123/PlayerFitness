@@ -10,6 +10,7 @@
 		040FEC3C2B86EBF0000680E8 /* BottomFullScreenProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040FEC3B2B86EBF0000680E8 /* BottomFullScreenProgressView.swift */; };
 		040FEC3E2B86FC34000680E8 /* RestFullScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040FEC3D2B86FC34000680E8 /* RestFullScreenView.swift */; };
 		040FEC402B874B25000680E8 /* FileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040FEC3F2B874B25000680E8 /* FileService.swift */; };
+		04179E772B9F0C0A007752E1 /* victory.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 04179E762B9F0C0A007752E1 /* victory.mp3 */; };
 		044B16242B84850300B07BFD /* ProgressPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B16232B84850300B07BFD /* ProgressPlayerView.swift */; };
 		044B16262B84A95D00B07BFD /* GetReadyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044B16252B84A95D00B07BFD /* GetReadyView.swift */; };
 		046050A02B71D34D00BBAB3C /* AVController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0460509F2B71D34D00BBAB3C /* AVController.swift */; };
@@ -30,6 +31,7 @@
 		040FEC3B2B86EBF0000680E8 /* BottomFullScreenProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomFullScreenProgressView.swift; sourceTree = "<group>"; };
 		040FEC3D2B86FC34000680E8 /* RestFullScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestFullScreenView.swift; sourceTree = "<group>"; };
 		040FEC3F2B874B25000680E8 /* FileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileService.swift; sourceTree = "<group>"; };
+		04179E762B9F0C0A007752E1 /* victory.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = victory.mp3; sourceTree = "<group>"; };
 		044B16232B84850300B07BFD /* ProgressPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPlayerView.swift; sourceTree = "<group>"; };
 		044B16252B84A95D00B07BFD /* GetReadyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetReadyView.swift; sourceTree = "<group>"; };
 		0460509F2B71D34D00BBAB3C /* AVController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVController.swift; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 		04684DCF2B7081040016CA32 /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				04179E762B9F0C0A007752E1 /* victory.mp3 */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -191,6 +194,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0499D6622B6CA24000EEE365 /* Preview Assets.xcassets in Resources */,
+				04179E772B9F0C0A007752E1 /* victory.mp3 in Resources */,
 				0499D65F2B6CA24000EEE365 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

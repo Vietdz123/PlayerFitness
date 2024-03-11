@@ -19,11 +19,12 @@ enum StatusUpdatePlayer: Int, CaseIterable {
 class PlayerViewModel: ObservableObject {
     
     var urls: [String] = []
+    var playerSound: AVAudioPlayer?
     static let shared: PlayerViewModel = PlayerViewModel()
     @Published var totalTimeVieos: [Float] = []
     @Published var currentTimeVieos: [Float] = []
     
-    @Published var secondsReady = 6
+    @Published var secondsReady = 10
     @Published var textReady = "Get Ready"
     @Published var isShowingReadyView = false
     @Published var isLastVideo = false
@@ -35,6 +36,8 @@ class PlayerViewModel: ObservableObject {
     @Published var isShowingRestFullScreenView = false
     @Published var secondsRest = 16
     @Published var isFullScreen: Bool = false
+    let synthesizer = AVSpeechSynthesizer()
+    var utterance = AVSpeechUtterance(string: "hello")
     
     var didTapNextButton: (() -> Void)?
     var didTapBackButton: (() -> Void)?
@@ -42,11 +45,16 @@ class PlayerViewModel: ObservableObject {
     let operationReadyQueue = OperationQueue()
     var timerReady: Timer? = nil
     var timerRest: Timer? = nil
+    var hasReady = false
     
     func resetReadyView() {
         self.timerReady?.invalidate()
         self.timerReady = nil
-        self.secondsReady = 6
+        if !hasReady {
+            self.secondsReady = 10
+        } else {
+            self.secondsReady = 3
+        }
         self.textReady = "Get Ready"
     }
     
@@ -58,38 +66,82 @@ class PlayerViewModel: ObservableObject {
     }
     
     func showingReadyViewV2(completionShowing: @escaping () -> Void) {
+        playerSound?.currentTime = 0
+        playerSound?.play()
+        
         timerReady = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { timer in
 
-            if self.secondsReady == 6 {
-                self.isShowingReadyView = true
-                self.textReady = "Get Ready"
-                self.secondsReady -= 1
-                return
-            }
+            self.utterance = AVSpeechUtterance(string: "hello")
+            self.utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            self.utterance.rate = 0.1
             
-            if self.secondsReady <= 5 && self.secondsReady > 0 {
-                self.textReady = "\(self.secondsReady)"
-                self.secondsReady -= 1
-                return
-            }
+            self.synthesizer.speak(self.utterance)
             
-            if self.secondsReady == 0 {
-                completionShowing()
-                self.textReady = "GO"
-                self.secondsReady -= 1
-                return
-            }
-            
-            if self.secondsReady == -1 {
-                self.isShowingReadyView = false
-                self.timerReady?.invalidate()
-                self.timerReady = nil
-                return
+            if !self.hasReady {
+                print("DEBUG: \(self.secondsReady)")
+                if self.secondsReady == 10 {
+                    self.isShowingReadyView = true
+                    self.textReady = "Get Ready"
+                    self.secondsReady -= 1
+                    return
+                }
+                
+                if self.secondsReady <= 9 && self.secondsReady > 0 {
+                    self.textReady = "\(self.secondsReady)"
+                    self.secondsReady -= 1
+                    return
+                }
+                
+                if self.secondsReady == 0 {
+                    completionShowing()
+                    self.textReady = "GO"
+                    self.secondsReady -= 1
+                    return
+                }
+                
+                if self.secondsReady == -1 {
+                    self.isShowingReadyView = false
+                    self.timerReady?.invalidate()
+                    self.timerReady = nil
+                    self.hasReady = true
+                    return
+                }
+            } else {
+                if self.secondsReady <= 3 && self.secondsReady > 0 {
+//                    let utterance = AVSpeechUtterance(string: "hello")
+//                    utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+//
+//                    let synthesizer = AVSpeechSynthesizer()
+//                    synthesizer.speak(utterance)
+                    
+                    self.isShowingReadyView = true
+                    self.textReady = "\(self.secondsReady)"
+                    self.secondsReady -= 1
+                    return
+                }
+                
+                if self.secondsReady == 0 {
+                    completionShowing()
+                    self.textReady = "GO"
+                    self.secondsReady -= 1
+                    return
+                }
+                
+                if self.secondsReady == -1 {
+                    self.isShowingReadyView = false
+                    self.timerReady?.invalidate()
+                    self.timerReady = nil
+                    return
+                }
+
             }
         })
     }
     
     func startRest(completionShowing: @escaping () -> Void) {
+        playerSound?.currentTime = 0
+        playerSound?.play()
+        
         timerRest = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { timer in
 
             if self.secondsRest > 0 {
@@ -105,20 +157,19 @@ class PlayerViewModel: ObservableObject {
     }
     
     @MainActor
-    func getCurrentURL() async -> String? {
+    func getCurrentURL() -> String? {
         if urls.isEmpty || currentIndexURL < 0 || currentIndexURL > urls.count - 1  {
             return nil
         }
         
         let file = FileService.shared.readVideoUrl(urlVideo: urls[currentIndexURL])
         if file != nil {
-            print("DEBUG: \(file) file")
             return file
         } else {
-            let file =  await FileService.shared.writeToSource(urlVideo: urls[currentIndexURL])
-            
-            print("DEBUG: \(file) cac")
-            return file
+            Task {
+                let file =  await FileService.shared.writeToSource(urlVideo: urls[currentIndexURL])
+            }
+            return urls[currentIndexURL]
         }
         
     }
@@ -138,6 +189,9 @@ class PlayerViewModel: ObservableObject {
     }
     
     func nextVideo() -> StatusUpdatePlayer {
+        self.hasReady = true
+        resetReadyView()
+        
         if currentIndexURL == numberVideo - 2 {
             currentIndexURL += 1
             isEnableNextButton = false
@@ -185,7 +239,7 @@ class PlayerViewModel: ObservableObject {
         return .normal
     }
     
-    func updateViewModel(urls: [String]) {
+    func updateViewModel(urls: [String], audioSound: AVAudioPlayer?) {
         self.urls = urls
         self.totalTimeVieos = Array(repeating: 0, count: urls.count)
         self.currentTimeVieos = Array(repeating: 0, count: urls.count)
@@ -200,6 +254,25 @@ class PlayerViewModel: ObservableObject {
         self.isShowingRestFullScreenView = false
         self.isFullScreen = false
         self.secondsRest = 16
+        self.playerSound = audioSound
+    }
+    
+    func playSound() {
+        self.playerSound?.play()
+    }
+    
+    func pauseSound() {
+        self.playerSound?.pause()
+    }
+    
+    func rewindNextSound() {
+        let currentTimeSound = playerSound?.currentTime ?? 0
+        playerSound?.currentTime = currentTimeSound + 5
+    }
+    
+    func rewindBackSound() {
+        let currentTimeSound = playerSound?.currentTime ?? 0
+        playerSound?.currentTime = currentTimeSound - 5
     }
     
     init() {}

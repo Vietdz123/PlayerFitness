@@ -44,6 +44,7 @@ class PlayerController: UIViewController {
     // MARK: - Properties
     let viewModel: PlayerViewModel
     var player = AVPlayer()
+    var playerSound: AVAudioPlayer?
     private var timeObserverToken: Any?
     private var isPlaying: Bool = true
     private lazy var playerLayer = AVPlayerLayer(player: player)
@@ -202,10 +203,13 @@ class PlayerController: UIViewController {
     @objc func handlePlayButtonTapped() {
         if isPlaying {
             player.pause()
+            viewModel.pauseSound()
             self.playVideoBtn.setImage(UIImage(named: AssetConstant.pauseVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
             self.playFullScreenVideoBtn.setImage(UIImage(named: AssetConstant.pauseVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
+            
         } else {
             player.play()
+            viewModel.playSound()
             self.playVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
             self.playFullScreenVideoBtn.setImage(UIImage(named: AssetConstant.playVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
         }
@@ -270,10 +274,12 @@ class PlayerController: UIViewController {
     
     // MARK: - View Lifecycle
     init(urls: [String]) {
-        PlayerViewModel.shared.updateViewModel(urls: urls)
         self.viewModel = PlayerViewModel.shared
-
+        self.playerSound = try? .init(contentsOf: Bundle.main.url(forResource: "victory", withExtension: "mp3")!)
+        self.playerSound?.stop()
+        
         super.init(nibName: nil, bundle: nil)
+        PlayerViewModel.shared.updateViewModel(urls: urls, audioSound: playerSound)
         self.viewModel.didTapBackButton = { [weak self] in
             self?.handleBackButtonTapped()
         }
@@ -474,10 +480,9 @@ class PlayerController: UIViewController {
     
     func updatePlayer() {
         Task {
-            guard let currentURL = await viewModel.getCurrentURL(), let url = URL(string: currentURL) else {return}
+            guard let currentURL = viewModel.getCurrentURL(), let url = URL(string: currentURL) else {return}
              
-            let currentUrlViewModel = await viewModel.getCurrentURL()
-            print("DEBUG: \(currentUrlViewModel) and \(currentURL)")
+            let currentUrlViewModel = viewModel.getCurrentURL()
             if currentURL != currentUrlViewModel {return}
             let item = AVPlayerItem(url: url)
             item.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), options: [.old, .new], context: nil)
@@ -495,9 +500,11 @@ class PlayerController: UIViewController {
             var currentTime = player.currentTime().seconds
             currentTime += 5
             
+            
             if currentTime != .nan && currentTime != .infinity {
                 player.seek(to: CMTime(value: CMTimeValue(currentTime), timescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
                 player.play()
+                viewModel.rewindNextSound()
             }
         }
     }
@@ -509,6 +516,7 @@ class PlayerController: UIViewController {
             
             player.seek(to: CMTime(value: CMTimeValue(currentTime), timescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
             player.play()
+            viewModel.rewindBackSound()
         }
     }
     
@@ -542,13 +550,15 @@ class PlayerController: UIViewController {
         }
         
         let status = viewModel.itemDidFinishPlay()
-
+        self.viewModel.pauseSound()
+        
         if status == .isLastVideo {
             self.playVideoBtn.setImage(UIImage(named: AssetConstant.pauseVideo.rawValue)?.withRenderingMode(.alwaysOriginal), for: .normal)
             self.nextVideoBtn.alpha = 0.4
             self.nextVideoBtn.isUserInteractionEnabled = false
             self.player.seek(to: CMTime(seconds: .zero, preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
             self.updatePlayer()
+            
             
         } else if status == .normal {
             self.updatePlayer()
